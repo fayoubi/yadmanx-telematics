@@ -7,22 +7,27 @@
 //
 
 import UIKit
-import RaxelPulse
+import TelematicsSDK
 import AdSupport
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate, RPSpeedLimitDelegate, RPTrackingStateListenerDelegate, RPAccuracyAuthorizationDelegate, RPLowPowerModeDelegate, RPLocationDelegate {
-    func onNewEvents(_ events: NSMutableArray!) {
-        //
-    }
-    
+class AppDelegate: UIResponder, UIApplicationDelegate, RPSpeedLimitDelegate, RPTrackingStateListenerDelegate, RPAccuracyAuthorizationDelegate, RPLowPowerModeDelegate {
     
     var timeThreshold: TimeInterval = 5
 
     var speedLimit: Double = 100
 
-    func speedLimitNotification(_ speedLimit: Double, speed: Double, latitude: Double, longitude: Double, date: Date!) {
-        self.showNotification(title: "Overspeed", body: String(format: "You speed is %f at lat: %f lon:%f", speed, latitude, longitude))
+    func speedLimitNotification(
+        _ speedLimit: Double,
+        speed: Double,
+        latitude: Double,
+        longitude: Double,
+        date: Date
+    ) {
+        self.showNotification(
+            title: "Overspeed",
+            body: String(format: "You speed is %f at lat: %f lon:%f", speed, latitude, longitude)
+        )
     }
 
     func trackingStateChanged(_ state: Bool) {
@@ -30,22 +35,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate, RPSpeedLimitDelegate, RPT
         if state {
             body = "Tracking Started"
         }
-        self.showNotification(title: "Tracking State", body: body)
+        self.showNotification(
+            title: "Tracking State",
+            body: body
+        )
     }
 
     func wrongAccuracyAuthorization() {
-        self.showNotification(title: "Precise Location is off", body: "Your trips may be not recorded. Please, follow to App Settings=>Location=>Precise Location")
+        self.showNotification(
+            title: "Precise Location is off",
+            body: "Your trips may be not recorded. Please, follow to App Settings=>Location=>Precise Location"
+        )
     }
 
     func lowPowerMode(_ state: Bool) {
         if (state) {
-            self.showNotification(title: "Low Power Mode", body: "Your trips may be not recorded. Please, follow to Settings=>Battery=>Low Power")
-        }
-    }
-
-    func onLocationChanged(_ location: CLLocation!) {
-        if let location = location {
-            print("location = %@", location)
+            self.showNotification(
+                title: "Low Power Mode",
+                body: "Your trips may be not recorded. Please, follow to Settings=>Battery=>Low Power"
+            )
         }
     }
     
@@ -56,17 +64,26 @@ class AppDelegate: UIResponder, UIApplicationDelegate, RPSpeedLimitDelegate, RPT
         content.sound = UNNotificationSound.default
 
         // show this notification five seconds from now
-        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 5, repeats: false)
+        let trigger = UNTimeIntervalNotificationTrigger(
+            timeInterval: 5,
+            repeats: false
+        )
 
         // choose a random identifier
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        let request = UNNotificationRequest(
+            identifier: UUID().uuidString,
+            content: content,
+            trigger: trigger
+        )
 
         // add our notification request
         UNUserNotificationCenter.current().add(request)
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        RPEntry.initialize(withRequestingPermissions: false)
+        
+        RPEntry.initializeSDK()
+        
         let appName = "\"Swift Demo App\""
         let pages = [
             PageHelper.createPage(
@@ -126,119 +143,91 @@ class AppDelegate: UIResponder, UIApplicationDelegate, RPSpeedLimitDelegate, RPT
         //RPSettings.returnInstance().wizardAlertActiveButtonTextColor = UIColor.white
         //RPSettings.returnInstance().wizardAlertActiveButtonBgColor = UIColor.white
         
-        RPPermissionsWizard.returnInstance().launch(finish: { _ in
-            RPEntry.initialize(withRequestingPermissions: true)
-            
-//FIXME: VIRTUAL DEVICE TOKEN REQUIRED!
-            let token = NSString(string: "VIRTUAL_DEVICE_TOKEN") //REQUIRED!
-            RPEntry.instance().virtualDeviceToken = token
-            RPEntry.instance().trackingStateDelegate = self
-            RPEntry.instance().locationDelegate = self
-            RPEntry.instance().speedLimitDelegate = self
-            RPEntry.instance().accuracyAuthorizationDelegate = self
-            RPEntry.instance().lowPowerModeDelegate = self
-            let options = launchOptions ?? [:]
-            RPEntry.application(application, didFinishLaunchingWithOptions: options)
-
-            if (ASIdentifierManager.shared().isAdvertisingTrackingEnabled) {
-                RPEntry.instance().advertisingIdentifier = ASIdentifierManager.shared().advertisingIdentifier
-            }
+        //FIXME: VIRTUAL DEVICE TOKEN REQUIRED!
+        let token = "VIRTUAL_DEVICE_TOKEN" //REQUIRED!
+        RPEntry.instance.virtualDeviceToken = token
+        RPEntry.instance.trackingStateDelegate = self
+        RPEntry.instance.speedLimitDelegate = self
+        RPEntry.instance.accuracyAuthorizationDelegate = self
+        RPEntry.instance.lowPowerModeDelegate = self
+        
+        if ASIdentifierManager.shared().isAdvertisingTrackingEnabled {
+            RPEntry.instance.advertisingIdentifier = ASIdentifierManager.shared().advertisingIdentifier
+        }
+        
+        RPPermissionsWizard.returnInstance().launch(finish: { finished in
+            print("wizard finished: \(finished)")
         })
+        
+        RPEntry.instance.application(application, didFinishLaunchingWithOptions: launchOptions)
         return true
     }
     
     // MARK: SDK Integration
     
     func applicationDidBecomeActive(_ application: UIApplication) {
-        RPEntry.applicationDidBecomeActive(application)
+        RPEntry.instance.applicationDidBecomeActive(application)
     }
     
     func applicationDidEnterBackground(_ application: UIApplication) {
-        RPEntry.applicationDidEnterBackground(application)
+        RPEntry.instance.applicationDidEnterBackground(application)
     }
     
     func applicationWillEnterForeground(_ application: UIApplication) {
-        RPEntry.applicationWillEnterForeground(application)
+        RPEntry.instance.applicationWillEnterForeground(application)
     }
     
     func applicationDidReceiveMemoryWarning(_ application: UIApplication) {
-        RPEntry.applicationDidReceiveMemoryWarning(application)
+        RPEntry.instance.applicationDidReceiveMemoryWarning(application)
     }
     
     func applicationWillTerminate(_ application: UIApplication) {
-        RPEntry.applicationWillTerminate(application)
+        RPEntry.instance.applicationWillTerminate(application)
     }
     
-    func application(_ application: UIApplication, performFetchWithCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
-        RPEntry.application(application) {
+    func application(
+        _ application: UIApplication,
+        performFetchWithCompletionHandler completionHandler: @escaping (
+            UIBackgroundFetchResult
+        ) -> Void
+    ) {
+        RPEntry.instance.application(application) {
             completionHandler(.newData)
         }
     }
 
     // MARK: UISceneSession Lifecycle
 
-    func application(_ application: UIApplication, configurationForConnecting connectingSceneSession: UISceneSession, options: UIScene.ConnectionOptions) -> UISceneConfiguration {
+    func application(
+        _ application: UIApplication,
+        configurationForConnecting connectingSceneSession: UISceneSession,
+        options: UIScene.ConnectionOptions
+    ) -> UISceneConfiguration {
         // Called when a new scene session is being created.
         // Use this method to select a configuration to create the new scene with.
-        return UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
+        UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
     }
 
-    func application(_ application: UIApplication, didDiscardSceneSessions sceneSessions: Set<UISceneSession>) {
+    func application(
+        _ application: UIApplication,
+        didDiscardSceneSessions sceneSessions: Set<UISceneSession>
+    ) {
         // Called when the user discards a scene session.
         // If any sessions were discarded while the application was not running, this will be called shortly after application:didFinishLaunchingWithOptions.
         // Use this method to release any resources that were specific to the discarded scenes, as they will not return.
     }
 
-    func application(_ application: UIApplication, handleEventsForBackgroundURLSession identifier: String, completionHandler: @escaping () -> Void) {
-        RPEntry.application(application, handleEventsForBackgroundURLSession: identifier, completionHandler: completionHandler)
+    func application(
+        _ application: UIApplication,
+        handleEventsForBackgroundURLSession identifier: String,
+        completionHandler: @escaping () -> Void
+    ) {
+        RPEntry.instance.application(
+            application,
+            handleEventsForBackgroundURLSession: identifier,
+            completionHandler: completionHandler
+        )
     }
     
-    func addTag(_ status: RPTagStatus, tag: RPTag!, timestamp: Int) {
-        let json: [String : Any?] = [
-            "status": String(describing: status),
-            "tag": String(data: tag.toJSON() as! Data, encoding: .utf8),
-            "activationTime": timestamp
-        ]
-
-        //channel?.invokeMethod("onAddTag", arguments: json)
-    }
-
-    func deleteTag(_ status: RPTagStatus, tag: RPTag!, timestamp: Int) {
-        let json: [String : Any?] = [
-            "status": String(describing: status),
-            "tag": String(data: tag.toJSON() as! Data, encoding: .utf8),
-            "deactivationTime": timestamp
-        ]
-
-        //channel?.invokeMethod("onTagRemove", arguments: json)
-    }
-
-    func removeAll(_ status: RPTagStatus, timestamp: Int) {
-        let json: [String : Any?] = [
-            "status": String(describing: status),
-            "time": timestamp
-        ]
-
-        //channel?.invokeMethod("onAllTagsRemove", arguments: json)
-    }
-
-    func getTags(_ status: RPTagStatus, tags: Any!, timestamp: Int) {
-        let _tags = tags as? RPTags
-
-        var strTags = [String]()
-
-        _tags?.tags.forEach { element in
-            let str = String(data: element.toJSON() as! Data, encoding: .utf8)!
-            strTags.append(str)
-        }
-
-        let json: [String : Any?] = [
-            "status": String(describing: status),
-            "tags": strTags,
-            "time": timestamp
-        ]
-
-        //channel?.invokeMethod("onGetTags", arguments: json)
-    }
 }
 

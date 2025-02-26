@@ -7,7 +7,7 @@
 //
 
 import UIKit
-import RaxelPulse
+import TelematicsSDK
 
 class ViewController: UIViewController {
     
@@ -18,46 +18,44 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        NotificationCenter.default.addObserver(self, selector: #selector(self.changedActivity), name: .RPTrackerDidChangeActivity, object: nil)
-        RPEntry.instance().currentSpeed { [weak self](speedvalue) in
-            guard let strongSelf = self else {
-                return
-            }
-            var result = "speed = 0 km/h"
-            if speedvalue.floatValue > 0 {
-                result = String(format: "speed = %.2f km/h", speedvalue.floatValue)
-            }
-            strongSelf.currentSpeedLabel.text = result
-        }
+        RPEntry.instance.locationDelegate = self
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(self.changedActivity),
+            name: NSNotification.RPTrackerDidChangeActivityNotification,
+            object: nil
+        )
     }
     
     override func viewDidAppear(_ animated: Bool) {
         self.observePermissions()
     }
     
+    deinit {
+        RPEntry.instance.locationDelegate = nil
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     @objc func observePermissions() {
         DispatchQueue.main.async {
-            let isActive = RPTracker.instance().isActive
+            let isActive = RPEntry.instance.isTrackingActive()
             self.stateLabel.text = "Tracking = \(isActive)"
-            let permissions = RPPermissionsWizard.isAllRequiredPermissionsGranted()
+            let permissions = RPEntry.instance.isAllRequiredPermissionsGranted()
             self.permissionLabel.text = "All Permission Granted = \(permissions)"
             
         }
-        RPEntry.instance().api.getTracks(0, limit: 1000) { (feed, error) in
-            DispatchQueue.main.async {
-                self.tripsView.text = ""
-            }
-            if error != nil {
-                DispatchQueue.main.async {
-                    self.tripsView.text = "trips load error = \(error?.localizedDescription ?? "empty")"
+        RPEntry.instance.api.getTracksWithOffset(0, limit: 10) { [weak self] tracks, error in
+            DispatchQueue.main.async { [weak self] in
+                self?.tripsView.text = ""
+                
+                if let error {
+                    self?.tripsView.text = "trips load error = \(error.localizedDescription)"
+                    return
                 }
-            }
-            if let theFeed = feed as? RPFeed {
-                for track in theFeed.tracks {
-                    DispatchQueue.main.async {
-                        self.tripsView.text = "\(self.tripsView.text ?? "")\n\(track.trackToken ?? "")\n\(track.startDate ?? NSDate.now)\n\(track.endDate ?? NSDate.now)\n"
-                    }
+                
+                for track in tracks {
+                    let currentText = self?.tripsView.text ?? ""
+                    self?.tripsView.text = "\(currentText)\n\(track.trackToken)\n\(track.startDate)\n\(track.endDate)\n"
                 }
             }
         }
@@ -65,10 +63,25 @@ class ViewController: UIViewController {
     
     @objc func changedActivity() {
         DispatchQueue.main.async {
-            let isActive = RPTracker.instance().isActive
+            let isActive = RPEntry.instance.isTrackingActive()
             self.stateLabel.text = "Tracking = \(isActive)"
         }
     }
 
 }
 
+extension ViewController: RPLocationDelegate {
+    
+    func onLocationChanged(_ location: CLLocation) {
+        DispatchQueue.main.async { [weak self] in
+            self?.currentSpeedLabel.text = String(format: "speed = %.2f km/h", location.speed)
+        }
+        print("location = %@", location)
+    }
+    
+    func onNewEvents(_ events: [RPEventPoint]) {
+        for event in events {
+            print("event = %@", event)
+        }
+    }
+}

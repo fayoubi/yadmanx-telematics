@@ -7,7 +7,7 @@
 //
 
 import Foundation
-import RaxelPulse
+import TelematicsSDK
 
 class PageHelper {
     

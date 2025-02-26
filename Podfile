@@ -1,9 +1,10 @@
 source 'https://github.com/CocoaPods/Specs.git'
+
 platform :ios, '12.0'
 use_frameworks!
 
 target 'DemoSwiftApp' do
-  pod 'RaxelPulse', '6.0.6'
+  pod 'TelematicsSDK', '7.0.0'
 end
 
 post_install do |installer|
