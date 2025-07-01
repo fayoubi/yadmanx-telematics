@@ -1,16 +1,16 @@
 PODS:
-  - TelematicsSDK (7.0.0)
+  - TelematicsSDK (7.0.1)
 
 DEPENDENCIES:
-  - TelematicsSDK (= 7.0.0)
+  - TelematicsSDK (= 7.0.1)
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
     - TelematicsSDK
 
 SPEC CHECKSUMS:
-  TelematicsSDK: 61be778c9b4ceaae19c72d8ff42322b7a02edb7b
+  TelematicsSDK: bc3157fea7f2c463c1686b546dcebf98ce3a112b
 
-PODFILE CHECKSUM: 7f295b077d88e6358f3430047133df652eec785d
+PODFILE CHECKSUM: 5244a3dfce4f9c6280af0e5e4f1841913842ca7a
 
 COCOAPODS: 1.16.2

@@ -4,7 +4,7 @@ platform :ios, '12.0'
 use_frameworks!
 
 target 'DemoSwiftApp' do
-  pod 'TelematicsSDK', '7.0.0'
+  pod 'TelematicsSDK', '7.0.1'
 end
 
 post_install do |installer|
