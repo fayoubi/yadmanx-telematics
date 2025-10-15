@@ -11,6 +11,7 @@
 		8B17CC8E2E9FBD6A00963584 /* Trip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B17CC8B2E9FBD6A00963584 /* Trip.swift */; };
 		8B17CC8F2E9FBD6A00963584 /* TripTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B17CC8C2E9FBD6A00963584 /* TripTableViewCell.swift */; };
 		8B17CC912E9FBD8C00963584 /* TripsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B17CC902E9FBD8C00963584 /* TripsViewController.swift */; };
+		8B17CC932E9FBD9A00963584 /* TripDetailsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8B17CC922E9FBD9A00963584 /* TripDetailsViewController.swift */; };
 		A500AFC323CEECCD00B019F8 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A500AFC223CEECCD00B019F8 /* AppDelegate.swift */; };
 		A500AFC523CEECCD00B019F8 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A500AFC423CEECCD00B019F8 /* SceneDelegate.swift */; };
 		A500AFC723CEECCD00B019F8 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A500AFC623CEECCD00B019F8 /* ViewController.swift */; };
@@ -27,6 +28,7 @@
 		8B17CC8B2E9FBD6A00963584 /* Trip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Trip.swift; sourceTree = "<group>"; };
 		8B17CC8C2E9FBD6A00963584 /* TripTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripTableViewCell.swift; sourceTree = "<group>"; };
 		8B17CC902E9FBD8C00963584 /* TripsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripsViewController.swift; sourceTree = "<group>"; };
+		8B17CC922E9FBD9A00963584 /* TripDetailsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TripDetailsViewController.swift; sourceTree = "<group>"; };
 		A500AFBF23CEECCD00B019F8 /* DemoSwiftApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DemoSwiftApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A500AFC223CEECCD00B019F8 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A500AFC423CEECCD00B019F8 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -74,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				8B17CC902E9FBD8C00963584 /* TripsViewController.swift */,
+				8B17CC922E9FBD9A00963584 /* TripDetailsViewController.swift */,
 				8B17CC8A2E9FBD6A00963584 /* Theme.swift */,
 				8B17CC8B2E9FBD6A00963584 /* Trip.swift */,
 				8B17CC8C2E9FBD6A00963584 /* TripTableViewCell.swift */,
@@ -231,6 +234,7 @@
 				A500AFC523CEECCD00B019F8 /* SceneDelegate.swift in Sources */,
 				8B17CC8D2E9FBD6A00963584 /* Theme.swift in Sources */,
 				8B17CC912E9FBD8C00963584 /* TripsViewController.swift in Sources */,
+				8B17CC932E9FBD9A00963584 /* TripDetailsViewController.swift in Sources */,
 				8B17CC8E2E9FBD6A00963584 /* Trip.swift in Sources */,
 				8B17CC8F2E9FBD6A00963584 /* TripTableViewCell.swift in Sources */,
 			);

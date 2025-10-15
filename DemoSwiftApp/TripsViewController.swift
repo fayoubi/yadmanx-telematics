@@ -187,6 +187,29 @@ class TripsViewController: UIViewController {
         // Extract score (rating100 is 0-100 scale)
         let score = (tripData["rating100"] as? Double).map { Int($0) }
 
+        // Extract coordinates
+        let startLat = tripData["startLatitude"] as? Double
+        let startLon = tripData["startLongitude"] as? Double
+        let endLat = tripData["endLatitude"] as? Double
+        let endLon = tripData["endLongitude"] as? Double
+
+        var startLocation: CLLocationCoordinate2D?
+        if let lat = startLat, let lon = startLon {
+            startLocation = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        }
+
+        var endLocation: CLLocationCoordinate2D?
+        if let lat = endLat, let lon = endLon {
+            endLocation = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        }
+
+        // Extract detailed scores - correct property names from SDK
+        let accelerationScore = (tripData["ratingAcceleration100"] as? Double).map { Int($0) }
+        let brakingScore = (tripData["ratingBraking100"] as? Double).map { Int($0) }
+        let phoneDistractionScore = (tripData["ratingPhoneUsage100"] as? Double).map { Int($0) }
+        let speedingScore = (tripData["ratingSpeeding100"] as? Double).map { Int($0) }
+        let corneringScore = (tripData["ratingCornering100"] as? Double).map { Int($0) }
+
         return Trip(
             id: trackToken,
             startDate: startDate,
@@ -197,7 +220,17 @@ class TripsViewController: UIViewController {
             duration: duration,
             score: score,
             averageSpeed: nil,
-            maxSpeed: nil
+            maxSpeed: nil,
+            startLocation: startLocation,
+            endLocation: endLocation,
+            polyline: nil, // Will be loaded separately if needed
+            accelerationScore: accelerationScore,
+            brakingScore: brakingScore,
+            phoneDistractionScore: phoneDistractionScore,
+            speedingScore: speedingScore,
+            corneringScore: corneringScore,
+            tripType: .none,
+            isDriver: true
         )
     }
 
@@ -261,9 +294,11 @@ extension TripsViewController: UITableViewDataSource {
 
 extension TripsViewController: UITableViewDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
         let trip = trips[indexPath.row]
-        // TODO: Navigate to trip detail view
-        print("Selected trip: \(trip.id)")
+        let detailsVC = TripDetailsViewController(trip: trip)
+        detailsVC.modalPresentationStyle = .fullScreen
+        present(detailsVC, animated: true)
     }
 
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
