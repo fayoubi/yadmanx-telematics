@@ -77,10 +77,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         //RPSettings.returnInstance().wizardAlertButtonTextColor = UIColor.white
         //RPSettings.returnInstance().wizardAlertActiveButtonTextColor = UIColor.white
         //RPSettings.returnInstance().wizardAlertActiveButtonBgColor = UIColor.white
-        
-        RPPermissionsWizard.returnInstance().launch(finish: { finished in
-            print("wizard finished: \(finished)")
-        })
+
+        // NOTE: Permission wizard is now only launched in AppDelegate to avoid conflicts
+        // Removed duplicate: RPPermissionsWizard.returnInstance().launch(finish: { finished in ... })
     }
 
     func sceneDidDisconnect(_ scene: UIScene) {

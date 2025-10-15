@@ -161,25 +161,52 @@ class TripsViewController: UIViewController {
         let mirror = Mirror(reflecting: track)
         var tripData: [String: Any] = [:]
 
+        print("\n========== DEBUG: RPTrack Properties ==========")
+        print("Track object type: \(type(of: track))")
+
         for child in mirror.children {
             if let label = child.label {
                 tripData[label] = child.value
+                // Log each property with its type and value
+                print("  [\(label)] Type: \(type(of: child.value))")
+                print("    Value: \(child.value)")
             }
         }
+        print("===============================================\n")
 
         // Extract values safely
         guard let trackToken = tripData["trackToken"] as? String,
               let startDate = tripData["startDate"] as? Date,
               let endDate = tripData["endDate"] as? Date else {
+            print("⚠️ WARNING: Failed to extract basic trip data (trackToken, startDate, or endDate)")
             return nil
         }
 
-        let distance = (tripData["distance"] as? Double) ?? 0.0
+        // Try different possible property names for distance
+        let distance = (tripData["distance"] as? Double)
+            ?? (tripData["distanceKm"] as? Double)
+            ?? (tripData["distanceMeters"] as? Double)
+            ?? ((tripData["distance"] as? Int).map { Double($0) })
+            ?? ((tripData["distance"] as? Float).map { Double($0) })
+            ?? 0.0
+
+        print("📏 Distance extracted: \(distance) (will be converted to km)")
+
         let duration = endDate.timeIntervalSince(startDate)
 
-        // Try to get addresses
-        let startAddress = tripData["startAddress"] as? String
-        let endAddress = tripData["endAddress"] as? String
+        // Try different possible property names for addresses
+        let startAddress = (tripData["startAddress"] as? String)
+            ?? (tripData["originAddress"] as? String)
+            ?? (tripData["addressFrom"] as? String)
+            ?? (tripData["startLocation"] as? String)
+
+        let endAddress = (tripData["endAddress"] as? String)
+            ?? (tripData["destinationAddress"] as? String)
+            ?? (tripData["addressTo"] as? String)
+            ?? (tripData["endLocation"] as? String)
+
+        print("📍 Start Address: \(startAddress ?? "nil")")
+        print("📍 End Address: \(endAddress ?? "nil")")
 
         return Trip(
             id: trackToken,
