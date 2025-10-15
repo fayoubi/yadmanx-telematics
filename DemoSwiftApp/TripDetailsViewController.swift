@@ -432,35 +432,7 @@ class TripDetailsViewController: UIViewController {
         durationLabel.text = String(format: "%02d:%02d", Int(hours), Int(minutes))
 
         // Configure map
-        if let startLoc = trip.startLocation, let endLoc = trip.endLocation {
-            let startAnnotation = MKPointAnnotation()
-            startAnnotation.coordinate = startLoc
-            startAnnotation.title = "Start"
-
-            let endAnnotation = MKPointAnnotation()
-            endAnnotation.coordinate = endLoc
-            endAnnotation.title = "End"
-
-            mapView.addAnnotations([startAnnotation, endAnnotation])
-
-            // Draw route line
-            let polyline = MKPolyline(coordinates: [startLoc, endLoc], count: 2)
-            mapView.addOverlay(polyline)
-
-            // Fit map to show both points
-            let region = MKCoordinateRegion(
-                center: CLLocationCoordinate2D(
-                    latitude: (startLoc.latitude + endLoc.latitude) / 2,
-                    longitude: (startLoc.longitude + endLoc.longitude) / 2
-                ),
-                span: MKCoordinateSpan(
-                    latitudeDelta: abs(startLoc.latitude - endLoc.latitude) * 1.5,
-                    longitudeDelta: abs(startLoc.longitude - endLoc.longitude) * 1.5
-                )
-            )
-            mapView.setRegion(region, animated: false)
-        }
-
+        configureMap()
         mapView.delegate = self
 
         // Configure location timeline
@@ -481,6 +453,88 @@ class TripDetailsViewController: UIViewController {
         case .business:
             tripTypeSegmentedControl.selectedSegmentIndex = 2
         }
+    }
+
+    // MARK: - Map Configuration
+
+    private func configureMap() {
+        // Remove any existing annotations and overlays
+        mapView.removeAnnotations(mapView.annotations)
+        mapView.removeOverlays(mapView.overlays)
+
+        // Check if we have trip route data
+        if let polylineCoords = trip.polyline, !polylineCoords.isEmpty {
+            // Use actual trip points
+            configureMapWithPolyline(polylineCoords)
+        } else if let startLoc = trip.startLocation, let endLoc = trip.endLocation {
+            // Fallback to straight line between start and end
+            configureMapWithStartEnd(startLoc, endLoc)
+        }
+    }
+
+    private func configureMapWithPolyline(_ coordinates: [CLLocationCoordinate2D]) {
+        // Add start and end markers
+        if let startCoord = coordinates.first {
+            let startAnnotation = MKPointAnnotation()
+            startAnnotation.coordinate = startCoord
+            startAnnotation.title = "Start"
+            mapView.addAnnotation(startAnnotation)
+        }
+
+        if let endCoord = coordinates.last {
+            let endAnnotation = MKPointAnnotation()
+            endAnnotation.coordinate = endCoord
+            endAnnotation.title = "End"
+            mapView.addAnnotation(endAnnotation)
+        }
+
+        // Create polyline from all coordinates
+        var mutableCoords = coordinates
+        let polyline = MKPolyline(coordinates: &mutableCoords, count: coordinates.count)
+        mapView.addOverlay(polyline)
+
+        // Fit map to show entire route with padding
+        let rect = polyline.boundingMapRect
+        let padding = UIEdgeInsets(top: 100, left: 50, bottom: 300, right: 50)
+        mapView.setVisibleMapRect(rect, edgePadding: padding, animated: false)
+    }
+
+    private func configureMapWithStartEnd(_ startLoc: CLLocationCoordinate2D, _ endLoc: CLLocationCoordinate2D) {
+        // Add start and end markers
+        let startAnnotation = MKPointAnnotation()
+        startAnnotation.coordinate = startLoc
+        startAnnotation.title = "Start"
+
+        let endAnnotation = MKPointAnnotation()
+        endAnnotation.coordinate = endLoc
+        endAnnotation.title = "End"
+
+        mapView.addAnnotations([startAnnotation, endAnnotation])
+
+        // Draw straight line between start and end
+        let coordinates = [startLoc, endLoc]
+        var mutableCoords = coordinates
+        let polyline = MKPolyline(coordinates: &mutableCoords, count: 2)
+        mapView.addOverlay(polyline)
+
+        // Calculate region to show both points with padding
+        let minLat = min(startLoc.latitude, endLoc.latitude)
+        let maxLat = max(startLoc.latitude, endLoc.latitude)
+        let minLon = min(startLoc.longitude, endLoc.longitude)
+        let maxLon = max(startLoc.longitude, endLoc.longitude)
+
+        let center = CLLocationCoordinate2D(
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLon + maxLon) / 2
+        )
+
+        let span = MKCoordinateSpan(
+            latitudeDelta: max((maxLat - minLat) * 1.5, 0.01),
+            longitudeDelta: max((maxLon - minLon) * 1.5, 0.01)
+        )
+
+        let region = MKCoordinateRegion(center: center, span: span)
+        mapView.setRegion(region, animated: false)
     }
 
     // MARK: - Actions

@@ -203,6 +203,29 @@ class TripsViewController: UIViewController {
             endLocation = CLLocationCoordinate2D(latitude: lat, longitude: lon)
         }
 
+        // Extract trip points for polyline
+        var polylineCoordinates: [CLLocationCoordinate2D]? = nil
+        if let points = tripData["points"] as? [Any], !points.isEmpty {
+            var coords: [CLLocationCoordinate2D] = []
+            for point in points {
+                let pointMirror = Mirror(reflecting: point)
+                var pointData: [String: Any] = [:]
+                for child in pointMirror.children {
+                    if let label = child.label {
+                        pointData[label] = child.value
+                    }
+                }
+
+                if let lat = pointData["latitude"] as? Double,
+                   let lon = pointData["longitude"] as? Double {
+                    coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
+                }
+            }
+            if !coords.isEmpty {
+                polylineCoordinates = coords
+            }
+        }
+
         // Extract detailed scores - correct property names from SDK
         let accelerationScore = (tripData["ratingAcceleration100"] as? Double).map { Int($0) }
         let brakingScore = (tripData["ratingBraking100"] as? Double).map { Int($0) }
@@ -223,7 +246,7 @@ class TripsViewController: UIViewController {
             maxSpeed: nil,
             startLocation: startLocation,
             endLocation: endLocation,
-            polyline: nil, // Will be loaded separately if needed
+            polyline: polylineCoordinates,
             accelerationScore: accelerationScore,
             brakingScore: brakingScore,
             phoneDistractionScore: phoneDistractionScore,
