@@ -151,6 +151,7 @@ class TripsViewController: UIViewController {
                 }
 
                 self?.trips = tracks.compactMap { self?.convertToTrip($0) }
+                    .sorted { $0.startDate > $1.startDate } // Sort by newest first
                 self?.tableView.reloadData()
             }
         }
