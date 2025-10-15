@@ -81,22 +81,45 @@ class AppDelegate: UIResponder, UIApplicationDelegate, RPSpeedLimitDelegate, RPT
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        
+
+        // Initialize the SDK - MUST be first
         RPEntry.initializeSDK()
-        
-        //VIRTUAL DEVICE TOKEN REQUIRED!
-        let token = "VIRTUAL_DEVICE_TOKEN" //REQUIRED!
-        RPEntry.instance.virtualDeviceToken = token
+
+        // Pass launch options to SDK
+        let options = launchOptions ?? [:]
+        RPEntry.instance.application(application, didFinishLaunchingWithOptions: options)
+
+        // Setup delegates
         RPEntry.instance.trackingStateDelegate = self
         RPEntry.instance.speedLimitDelegate = self
         RPEntry.instance.accuracyAuthorizationDelegate = self
         RPEntry.instance.lowPowerModeDelegate = self
-        
+
+        // Setup advertising identifier if available
         if ASIdentifierManager.shared().isAdvertisingTrackingEnabled {
             RPEntry.instance.advertisingIdentifier = ASIdentifierManager.shared().advertisingIdentifier
         }
-        
-        RPEntry.instance.application(application, didFinishLaunchingWithOptions: launchOptions)
+
+        // Set DeviceToken - Must be set before permissions wizard
+        //Fahd
+        let deviceToken = "d968bcef-581a-448b-9912-33441c9bfa37"
+        //Ghizlane
+        //let deviceToken = "1fd464b1-7600-482b-9064-f93fd12882dc"
+        RPEntry.instance.virtualDeviceToken = deviceToken
+
+        // Setup permissions wizard
+        RPPermissionsWizard.returnInstance().launch(finish: { finished in
+            print("Permissions wizard finished: \(finished)")
+
+            // Enable tracking after permissions are granted
+            RPEntry.instance.disableTracking = false
+
+            // Explicitly enable HF (High Frequency) data collection for better accuracy
+            //RPEntry.instance.enableHF = true
+
+            print("Tracking enabled. disableTracking = \(RPEntry.instance.disableTracking)")
+        })
+
         return true
     }
     

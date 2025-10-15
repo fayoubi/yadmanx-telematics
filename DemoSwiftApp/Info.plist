@@ -26,13 +26,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>Please, provide permissions for this Demo</string>
+	<string>test</string>
 	<key>NSLocationAlwaysUsageDescription</key>
-	<string>Please, provide permissions for this Demo</string>
+	<string>test</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>Please, provide permissions for this Demo</string>
+	<string>test</string>
 	<key>NSMotionUsageDescription</key>
-	<string>Please, provide permissions for this Demo</string>
+	<string>test</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
@@ -57,6 +57,7 @@
 		<string>fetch</string>
 		<string>location</string>
 		<string>remote-notification</string>
+		<string>processing</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
