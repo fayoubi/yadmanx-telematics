@@ -41,13 +41,11 @@ struct Theme {
 
         switch score {
         case 90...100:
-            return scoreExcellent
-        case 75..<90:
-            return scoreGood
-        case 60..<75:
-            return scoreAverage
+            return scoreExcellent  // Green for 90+
+        case 70..<90:
+            return scoreAverage    // Yellow for 70-89
         default:
-            return scorePoor
+            return scorePoor       // Red for below 70
         }
     }
 }

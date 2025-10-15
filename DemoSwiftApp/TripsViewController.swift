@@ -161,52 +161,30 @@ class TripsViewController: UIViewController {
         let mirror = Mirror(reflecting: track)
         var tripData: [String: Any] = [:]
 
-        print("\n========== DEBUG: RPTrack Properties ==========")
-        print("Track object type: \(type(of: track))")
-
         for child in mirror.children {
             if let label = child.label {
                 tripData[label] = child.value
-                // Log each property with its type and value
-                print("  [\(label)] Type: \(type(of: child.value))")
-                print("    Value: \(child.value)")
             }
         }
-        print("===============================================\n")
 
         // Extract values safely
         guard let trackToken = tripData["trackToken"] as? String,
               let startDate = tripData["startDate"] as? Date,
               let endDate = tripData["endDate"] as? Date else {
-            print("⚠️ WARNING: Failed to extract basic trip data (trackToken, startDate, or endDate)")
             return nil
         }
 
-        // Try different possible property names for distance
-        let distance = (tripData["distance"] as? Double)
-            ?? (tripData["distanceKm"] as? Double)
-            ?? (tripData["distanceMeters"] as? Double)
-            ?? ((tripData["distance"] as? Int).map { Double($0) })
-            ?? ((tripData["distance"] as? Float).map { Double($0) })
-            ?? 0.0
-
-        print("📏 Distance extracted: \(distance) (will be converted to km)")
+        // Extract distance (already in kilometers)
+        let distance = (tripData["distance"] as? Double) ?? 0.0
 
         let duration = endDate.timeIntervalSince(startDate)
 
-        // Try different possible property names for addresses
-        let startAddress = (tripData["startAddress"] as? String)
-            ?? (tripData["originAddress"] as? String)
-            ?? (tripData["addressFrom"] as? String)
-            ?? (tripData["startLocation"] as? String)
+        // Extract addresses - correct property names: addressStart and addressEnd
+        let startAddress = tripData["addressStart"] as? String
+        let endAddress = tripData["addressEnd"] as? String
 
-        let endAddress = (tripData["endAddress"] as? String)
-            ?? (tripData["destinationAddress"] as? String)
-            ?? (tripData["addressTo"] as? String)
-            ?? (tripData["endLocation"] as? String)
-
-        print("📍 Start Address: \(startAddress ?? "nil")")
-        print("📍 End Address: \(endAddress ?? "nil")")
+        // Extract score (rating100 is 0-100 scale)
+        let score = (tripData["rating100"] as? Double).map { Int($0) }
 
         return Trip(
             id: trackToken,
@@ -214,9 +192,9 @@ class TripsViewController: UIViewController {
             endDate: endDate,
             startAddress: startAddress,
             endAddress: endAddress,
-            distance: distance / 1000.0, // Convert meters to km
+            distance: distance, // Already in km, no conversion needed
             duration: duration,
-            score: nil, // Will be populated if available
+            score: score,
             averageSpeed: nil,
             maxSpeed: nil
         )
