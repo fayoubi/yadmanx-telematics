@@ -20,10 +20,10 @@ struct Trip {
     let averageSpeed: Double? // km/h
     let maxSpeed: Double? // km/h
 
-    // Coordinates for map display
-    let startLocation: CLLocationCoordinate2D?
-    let endLocation: CLLocationCoordinate2D?
-    let polyline: [CLLocationCoordinate2D]?
+    // Coordinates for map display (mutable to allow updating with detailed data)
+    var startLocation: CLLocationCoordinate2D?
+    var endLocation: CLLocationCoordinate2D?
+    var polyline: [CLLocationCoordinate2D]?
 
     // Detailed scores
     let accelerationScore: Int?

@@ -211,8 +211,112 @@ class TripDetailsViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
+        fetchDetailedTripData()
         configureWithTrip()
         setupActions()
+    }
+
+    // MARK: - Data Loading
+
+    private func fetchDetailedTripData() {
+        print("\n=== FETCHING DETAILED TRACK DATA ===")
+        print("Track token: \(trip.id)")
+
+        RPEntry.instance.api.getTrackWithTrackToken(trip.id) { [weak self] detailedTrack, error in
+            guard let self = self else { return }
+
+            DispatchQueue.main.async {
+                if let error = error {
+                    print("ERROR fetching detailed track: \(error.localizedDescription)")
+                    return
+                }
+
+                guard let detailedTrack = detailedTrack else {
+                    print("ERROR: Detailed track is nil")
+                    return
+                }
+
+                print("Successfully fetched detailed track")
+                self.updateTripWithDetailedData(detailedTrack)
+            }
+        }
+    }
+
+    private func updateTripWithDetailedData(_ detailedTrack: Any) {
+        // Use reflection to extract detailed data
+        let mirror = Mirror(reflecting: detailedTrack)
+        var trackData: [String: Any] = [:]
+
+        for child in mirror.children {
+            if let label = child.label {
+                trackData[label] = child.value
+            }
+        }
+
+        print("Detailed track properties:")
+
+        // Extract coordinates
+        let startLat = trackData["startLatitude"] as? Double
+        let startLon = trackData["startLongitude"] as? Double
+        let endLat = trackData["endLatitude"] as? Double
+        let endLon = trackData["endLongitude"] as? Double
+
+        print("Start coords: \(startLat ?? 0), \(startLon ?? 0)")
+        print("End coords: \(endLat ?? 0), \(endLon ?? 0)")
+
+        var startLocation: CLLocationCoordinate2D?
+        if let lat = startLat, let lon = startLon {
+            startLocation = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        }
+
+        var endLocation: CLLocationCoordinate2D?
+        if let lat = endLat, let lon = endLon {
+            endLocation = CLLocationCoordinate2D(latitude: lat, longitude: lon)
+        }
+
+        // Extract points
+        var polylineCoordinates: [CLLocationCoordinate2D]? = nil
+        if let points = trackData["points"] as? [Any], !points.isEmpty {
+            print("Found \(points.count) points in detailed track")
+
+            var coords: [CLLocationCoordinate2D] = []
+            for (index, point) in points.enumerated() {
+                let pointMirror = Mirror(reflecting: point)
+                var pointData: [String: Any] = [:]
+                for child in pointMirror.children {
+                    if let label = child.label {
+                        pointData[label] = child.value
+                    }
+                }
+
+                if let lat = pointData["latitude"] as? Double,
+                   let lon = pointData["longitude"] as? Double {
+                    coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
+                    if index < 3 {
+                        print("  Point \(index): \(lat), \(lon)")
+                    }
+                }
+            }
+            if !coords.isEmpty {
+                polylineCoordinates = coords
+                print("Extracted \(coords.count) valid coordinates")
+            }
+        } else {
+            print("No points found in detailed track")
+        }
+
+        print("===================================\n")
+
+        // Update trip with new data
+        var updatedTrip = trip
+        updatedTrip.startLocation = startLocation
+        updatedTrip.endLocation = endLocation
+        updatedTrip.polyline = polylineCoordinates
+
+        self.trip = updatedTrip
+
+        // Reconfigure map with new data
+        configureMap()
     }
 
     // MARK: - Setup
