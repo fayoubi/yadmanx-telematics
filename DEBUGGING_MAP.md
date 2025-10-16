@@ -1,7 +1,11 @@
 # Map Debugging Instructions
 
-## Current Issue
-The map is showing a high-level view of Morocco instead of zooming into the trip route.
+## Issue - RESOLVED
+The map was showing a high-level view of Morocco instead of zooming into the trip route.
+
+**Root Cause:** `getTracksWithOffset()` returns lightweight `RPTrack` objects without GPS points or detailed coordinates.
+
+**Solution:** Implemented `getTrackWithTrackToken()` to fetch `RPTrackProcessed` with full trip details including points array and coordinates. Map now properly zooms to show the actual route.
 
 ## Debug Logging Added
 I've added extensive logging to help diagnose the issue. The logs will show:
