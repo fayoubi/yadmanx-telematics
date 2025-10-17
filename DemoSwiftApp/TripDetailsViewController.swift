@@ -219,24 +219,14 @@ class TripDetailsViewController: UIViewController {
     // MARK: - Data Loading
 
     private func fetchDetailedTripData() {
-        print("\n=== FETCHING DETAILED TRACK DATA ===")
-        print("Track token: \(trip.id)")
-
         RPEntry.instance.api.getTrackWithTrackToken(trip.id) { [weak self] detailedTrack, error in
             guard let self = self else { return }
 
             DispatchQueue.main.async {
-                if let error = error {
-                    print("ERROR fetching detailed track: \(error.localizedDescription)")
+                guard error == nil, let detailedTrack = detailedTrack else {
                     return
                 }
 
-                guard let detailedTrack = detailedTrack else {
-                    print("ERROR: Detailed track is nil")
-                    return
-                }
-
-                print("Successfully fetched detailed track")
                 self.updateTripWithDetailedData(detailedTrack)
             }
         }
@@ -253,16 +243,11 @@ class TripDetailsViewController: UIViewController {
             }
         }
 
-        print("Detailed track properties:")
-
         // Extract coordinates
         let startLat = trackData["startLatitude"] as? Double
         let startLon = trackData["startLongitude"] as? Double
         let endLat = trackData["endLatitude"] as? Double
         let endLon = trackData["endLongitude"] as? Double
-
-        print("Start coords: \(startLat ?? 0), \(startLon ?? 0)")
-        print("End coords: \(endLat ?? 0), \(endLon ?? 0)")
 
         var startLocation: CLLocationCoordinate2D?
         if let lat = startLat, let lon = startLon {
@@ -277,10 +262,8 @@ class TripDetailsViewController: UIViewController {
         // Extract points
         var polylineCoordinates: [CLLocationCoordinate2D]? = nil
         if let points = trackData["points"] as? [Any], !points.isEmpty {
-            print("Found \(points.count) points in detailed track")
-
             var coords: [CLLocationCoordinate2D] = []
-            for (index, point) in points.enumerated() {
+            for point in points {
                 let pointMirror = Mirror(reflecting: point)
                 var pointData: [String: Any] = [:]
                 for child in pointMirror.children {
@@ -292,20 +275,12 @@ class TripDetailsViewController: UIViewController {
                 if let lat = pointData["latitude"] as? Double,
                    let lon = pointData["longitude"] as? Double {
                     coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
-                    if index < 3 {
-                        print("  Point \(index): \(lat), \(lon)")
-                    }
                 }
             }
             if !coords.isEmpty {
                 polylineCoordinates = coords
-                print("Extracted \(coords.count) valid coordinates")
             }
-        } else {
-            print("No points found in detailed track")
         }
-
-        print("===================================\n")
 
         // Update trip with new data
         var updatedTrip = trip
@@ -566,40 +541,23 @@ class TripDetailsViewController: UIViewController {
         mapView.removeAnnotations(mapView.annotations)
         mapView.removeOverlays(mapView.overlays)
 
-        print("\n=== MAP CONFIGURATION DEBUG ===")
-        print("Trip ID: \(trip.id)")
-        print("Has polyline: \(trip.polyline != nil)")
-        print("Polyline count: \(trip.polyline?.count ?? 0)")
-        print("Start location: \(trip.startLocation?.latitude ?? 0), \(trip.startLocation?.longitude ?? 0)")
-        print("End location: \(trip.endLocation?.latitude ?? 0), \(trip.endLocation?.longitude ?? 0)")
-
         // Check if we have trip route data
         if let polylineCoords = trip.polyline, !polylineCoords.isEmpty {
-            print("Using polyline with \(polylineCoords.count) points")
-            print("First point: \(polylineCoords.first!.latitude), \(polylineCoords.first!.longitude)")
-            print("Last point: \(polylineCoords.last!.latitude), \(polylineCoords.last!.longitude)")
             // Use actual trip points
             configureMapWithPolyline(polylineCoords)
         } else if let startLoc = trip.startLocation, let endLoc = trip.endLocation {
-            print("Using start/end fallback")
             // Fallback to straight line between start and end
             configureMapWithStartEnd(startLoc, endLoc)
-        } else {
-            print("ERROR: No location data available!")
         }
-        print("===============================\n")
     }
 
     private func configureMapWithPolyline(_ coordinates: [CLLocationCoordinate2D]) {
-        print("Configuring map with polyline...")
-
         // Add start and end markers
         if let startCoord = coordinates.first {
             let startAnnotation = MKPointAnnotation()
             startAnnotation.coordinate = startCoord
             startAnnotation.title = "Start"
             mapView.addAnnotation(startAnnotation)
-            print("Added start marker at: \(startCoord.latitude), \(startCoord.longitude)")
         }
 
         if let endCoord = coordinates.last {
@@ -607,29 +565,17 @@ class TripDetailsViewController: UIViewController {
             endAnnotation.coordinate = endCoord
             endAnnotation.title = "End"
             mapView.addAnnotation(endAnnotation)
-            print("Added end marker at: \(endCoord.latitude), \(endCoord.longitude)")
         }
 
         // Create polyline from all coordinates
         var mutableCoords = coordinates
         let polyline = MKPolyline(coordinates: &mutableCoords, count: coordinates.count)
         mapView.addOverlay(polyline)
-        print("Added polyline overlay")
 
         // Fit map to show entire route with padding
         let rect = polyline.boundingMapRect
-        print("Bounding rect - origin: \(rect.origin.x), \(rect.origin.y), size: \(rect.size.width) x \(rect.size.height)")
-
         let padding = UIEdgeInsets(top: 100, left: 50, bottom: 300, right: 50)
         mapView.setVisibleMapRect(rect, edgePadding: padding, animated: false)
-        print("Set visible map rect with padding")
-
-        // Force layout and check final region
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self = self else { return }
-            print("Final map region - center: \(self.mapView.region.center.latitude), \(self.mapView.region.center.longitude)")
-            print("Final map span - lat: \(self.mapView.region.span.latitudeDelta), lon: \(self.mapView.region.span.longitudeDelta)")
-        }
     }
 
     private func configureMapWithStartEnd(_ startLoc: CLLocationCoordinate2D, _ endLoc: CLLocationCoordinate2D) {

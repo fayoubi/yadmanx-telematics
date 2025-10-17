@@ -206,12 +206,8 @@ class TripsViewController: UIViewController {
         // Extract trip points for polyline
         var polylineCoordinates: [CLLocationCoordinate2D]? = nil
         if let points = tripData["points"] as? [Any], !points.isEmpty {
-            print("\n=== EXTRACTING TRIP POINTS ===")
-            print("Track token: \(trackToken)")
-            print("Total points in track: \(points.count)")
-
             var coords: [CLLocationCoordinate2D] = []
-            for (index, point) in points.enumerated() {
+            for point in points {
                 let pointMirror = Mirror(reflecting: point)
                 var pointData: [String: Any] = [:]
                 for child in pointMirror.children {
@@ -223,20 +219,11 @@ class TripsViewController: UIViewController {
                 if let lat = pointData["latitude"] as? Double,
                    let lon = pointData["longitude"] as? Double {
                     coords.append(CLLocationCoordinate2D(latitude: lat, longitude: lon))
-                    if index < 3 || index == points.count - 1 {
-                        print("Point \(index): lat=\(lat), lon=\(lon)")
-                    }
                 }
             }
             if !coords.isEmpty {
                 polylineCoordinates = coords
-                print("Successfully extracted \(coords.count) coordinates")
-            } else {
-                print("WARNING: No valid coordinates extracted from points")
             }
-            print("==============================\n")
-        } else {
-            print("WARNING: No points array found in track data for token: \(trackToken)")
         }
 
         // Extract detailed scores - correct property names from SDK
